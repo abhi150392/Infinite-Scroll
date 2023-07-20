@@ -7,18 +7,18 @@ export default function useBookSearch(query, pageNumber) {
   const [books, setBooks] = useState([]);
   const [hasMore, setHasMore] = useState(true);
 
-  let cancel;
-
   useEffect(() => {
     setBooks([]);
   }, [query]);
+
   useEffect(() => {
     setLoading(true);
     setError(false);
+    let cancel;
     axios({
       method: "GET",
-      url: "https://openlibrary.org/search.json",
-      params: { q: query, p: pageNumber },
+      url: "http://openlibrary.org/search.json",
+      params: { q: query, page: pageNumber },
       cancelToken: new axios.CancelToken((c) => (cancel = c)),
     })
       .then((res) => {
@@ -29,15 +29,13 @@ export default function useBookSearch(query, pageNumber) {
         });
         setHasMore(res.data.docs.length > 0);
         setLoading(false);
-        console.log(res.data);
       })
       .catch((e) => {
+        if (axios.isCancel(e)) return;
         setError(true);
-        if (axios.isCancel) return;
       });
-
     return () => cancel();
   }, [query, pageNumber]);
 
-  return { loading, books, error, hasMore };
+  return { loading, error, books, hasMore };
 }
